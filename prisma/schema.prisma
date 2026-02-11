@@ -1,0 +1,347 @@
+// This is your Prisma schema file for IEM BSH Department Website
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model Department {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  shortName   String?  @map("short_name") @db.VarChar(50)
+  about       String?  @db.Text
+  vision      String?  @db.Text
+  mission     String?  @db.Text
+  hodMessage  String?  @map("hod_message") @db.Text
+  hodName     String?  @map("hod_name") @db.VarChar(255)
+  logoUrl     String?  @map("logo_url") @db.VarChar(500)
+  bannerUrl   String?  @map("banner_url") @db.VarChar(500)
+  youtubeUrl  String?  @map("youtube_url") @db.VarChar(500)
+  facebookUrl String?  @map("facebook_url") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("departments")
+}
+
+model Accreditation {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  grade       String?  @db.VarChar(50)
+  body        String?  @db.VarChar(255)
+  imageUrl    String?  @map("image_url") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("accreditations")
+}
+
+model AdvisoryBoardMember {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  designation  String?  @db.VarChar(255)
+  organization String?  @db.VarChar(255)
+  category     String?  @db.VarChar(100)
+  imageUrl     String?  @map("image_url") @db.VarChar(500)
+  orderIndex   Int      @default(0) @map("order_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("advisory_board_members")
+}
+
+model BoSMeeting {
+  id            Int       @id @default(autoincrement())
+  title         String    @db.VarChar(255)
+  meetingNumber Int?      @map("meeting_number")
+  documentUrl   String?   @map("document_url") @db.VarChar(500)
+  date          DateTime?
+  createdAt     DateTime  @default(now()) @map("created_at")
+
+  @@map("bos_meetings")
+}
+
+model Syllabus {
+  id          Int      @id @default(autoincrement())
+  title       String   @db.VarChar(255)
+  year        String?  @db.VarChar(50)
+  semester    String?  @db.VarChar(50)
+  documentUrl String?  @map("document_url") @db.VarChar(500)
+  category    String?  @db.VarChar(100)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("syllabi")
+}
+
+model ProgramOutcome {
+  id          Int      @id @default(autoincrement())
+  code        String   @db.VarChar(20)
+  title       String   @db.VarChar(255)
+  description String?  @db.Text
+  orderIndex  Int      @default(0) @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("program_outcomes")
+}
+
+model Facility {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  description String?  @db.Text
+  imageUrl    String?  @map("image_url") @db.VarChar(500)
+  images      String[] @default([])
+  icon        String?  @db.VarChar(100)
+  orderIndex  Int      @default(0) @map("order_index")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("facilities")
+}
+
+model Faculty {
+  id           Int      @id @default(autoincrement())
+  name         String   @db.VarChar(255)
+  designation  String?  @db.VarChar(255)
+  qualification String? @db.VarChar(255)
+  experience   String?  @db.VarChar(100)
+  researchArea String?  @map("research_area") @db.Text
+  email        String?  @db.VarChar(255)
+  phone        String?  @db.VarChar(50)
+  imageUrl     String?  @map("image_url") @db.VarChar(500)
+  isHod        Boolean  @default(false) @map("is_hod")
+  orderIndex   Int      @default(0) @map("order_index")
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("faculty")
+}
+
+model Notice {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(500)
+  description String?   @db.Text
+  date        DateTime?
+  documentUrl String?   @map("document_url") @db.VarChar(500)
+  isActive    Boolean   @default(true) @map("is_active")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("notices")
+}
+
+model Event {
+  id          Int       @id @default(autoincrement())
+  title       String    @db.VarChar(255)
+  description String?   @db.Text
+  date        DateTime?
+  imageUrl    String?   @map("image_url") @db.VarChar(500)
+  category    String?   @db.VarChar(100)
+  year        String?   @db.VarChar(10)
+  linkUrl     String?   @map("link_url") @db.VarChar(500)
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("events")
+}
+
+model Journal {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(500)
+  description String?  @db.Text
+  issn        String?  @db.VarChar(50)
+  websiteUrl  String?  @map("website_url") @db.VarChar(500)
+  imageUrl    String?  @map("image_url") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("journals")
+}
+
+model Conference {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(500)
+  shortName   String?  @map("short_name") @db.VarChar(100)
+  description String?  @db.Text
+  websiteUrl  String?  @map("website_url") @db.VarChar(500)
+  year        String?  @db.VarChar(10)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("conferences")
+}
+
+model Club {
+  id            Int      @id @default(autoincrement())
+  name          String   @db.VarChar(255)
+  description   String?  @db.Text
+  contactPerson String?  @map("contact_person") @db.VarChar(255)
+  email         String?  @db.VarChar(255)
+  phone         String?  @db.VarChar(50)
+  websiteUrl    String?  @map("website_url") @db.VarChar(500)
+  activitiesUrl String?  @map("activities_url") @db.VarChar(500)
+  imageUrl      String?  @map("image_url") @db.VarChar(500)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("clubs")
+}
+
+model Publication {
+  id              Int      @id @default(autoincrement())
+  title           String?  @db.VarChar(500)
+  authors         String?  @db.Text
+  year            String?  @db.VarChar(10)
+  publicationType String?  @map("publication_type") @db.VarChar(100)
+  documentUrl     String?  @map("document_url") @db.VarChar(500)
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  @@map("publications")
+}
+
+model FundedProject {
+  id            Int      @id @default(autoincrement())
+  title         String   @db.VarChar(500)
+  piName        String?  @map("pi_name") @db.VarChar(255)
+  amount        String?  @db.VarChar(100)
+  duration      String?  @db.VarChar(100)
+  status        String?  @db.VarChar(50)
+  fundingAgency String?  @map("funding_agency") @db.VarChar(255)
+  imageUrl      String?  @map("image_url") @db.VarChar(500)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("funded_projects")
+}
+
+model Patent {
+  id           Int      @id @default(autoincrement())
+  title        String   @db.VarChar(500)
+  inventors    String?  @db.Text
+  patentNumber String?  @map("patent_number") @db.VarChar(100)
+  year         String?  @db.VarChar(10)
+  status       String?  @db.VarChar(50)
+  documentUrl  String?  @map("document_url") @db.VarChar(500)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("patents")
+}
+
+model ResearchSupervisor {
+  id             Int         @id @default(autoincrement())
+  name           String      @db.VarChar(255)
+  qualification  String?     @db.VarChar(255)
+  specialization String?     @db.Text
+  createdAt      DateTime    @default(now()) @map("created_at")
+  phdStudents    PhdStudent[]
+
+  @@map("research_supervisors")
+}
+
+model PhdStudent {
+  id           Int                 @id @default(autoincrement())
+  name         String              @db.VarChar(255)
+  status       String?             @db.VarChar(100)
+  supervisorId Int?                @map("supervisor_id")
+  supervisor   ResearchSupervisor? @relation(fields: [supervisorId], references: [id])
+  topic        String?             @db.Text
+  createdAt    DateTime            @default(now()) @map("created_at")
+
+  @@map("phd_students")
+}
+
+model MoU {
+  id           Int      @id @default(autoincrement())
+  organization String   @db.VarChar(255)
+  description  String?  @db.Text
+  imageUrl     String?  @map("image_url") @db.VarChar(500)
+  documentUrl  String?  @map("document_url") @db.VarChar(500)
+  year         String?  @db.VarChar(10)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("mous")
+}
+
+model Consultancy {
+  id          Int      @id @default(autoincrement())
+  title       String?  @db.VarChar(500)
+  year        String?  @db.VarChar(10)
+  documentUrl String?  @map("document_url") @db.VarChar(500)
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("consultancies")
+}
+
+model Award {
+  id            Int      @id @default(autoincrement())
+  title         String   @db.VarChar(500)
+  recipientName String?  @map("recipient_name") @db.VarChar(255)
+  description   String?  @db.Text
+  year          String?  @db.VarChar(10)
+  category      String?  @db.VarChar(50)
+  imageUrl      String?  @map("image_url") @db.VarChar(500)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@map("awards")
+}
+
+model GalleryImage {
+  id          Int       @id @default(autoincrement())
+  title       String?   @db.VarChar(255)
+  description String?   @db.Text
+  imageUrl    String    @map("image_url") @db.VarChar(500)
+  category    String?   @db.VarChar(100)
+  date        DateTime?
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@map("gallery_images")
+}
+
+model ContactInfo {
+  id          Int      @id @default(autoincrement())
+  address     String?  @db.Text
+  phone       String?  @db.VarChar(50)
+  email       String?  @db.VarChar(255)
+  mapEmbedUrl String?  @map("map_embed_url") @db.Text
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("contact_info")
+}
+
+model ContactRequest {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(255)
+  email       String   @db.VarChar(255)
+  subject     String   @db.VarChar(255)
+  message     String   @db.Text
+  isRead      Boolean  @default(false) @map("is_read")
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@map("contact_requests")
+}
+
+model Admin {
+  id           Int      @id @default(autoincrement())
+  username     String   @unique @db.VarChar(100)
+  passwordHash String   @map("password_hash") @db.VarChar(255)
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  @@map("admins")
+}
+
+model Popup {
+  id               Int       @id @default(autoincrement())
+  title            String    @db.VarChar(255)
+  content          String?   @db.Text
+  buttonText       String?   @map("button_text") @db.VarChar(100)
+  buttonUrl        String?   @map("button_url") @db.VarChar(500)
+  imageUrl         String?   @map("image_url") @db.VarChar(500)
+  backgroundColor  String?   @map("background_color") @db.VarChar(20)
+  textColor        String?   @map("text_color") @db.VarChar(20)
+  buttonColor      String?   @map("button_color") @db.VarChar(20)
+  position         String?   @db.VarChar(50)
+  showCloseButton  Boolean   @default(true) @map("show_close_button")
+  autoClose        Int       @default(0) @map("auto_close")
+  isActive         Boolean   @default(false) @map("is_active")
+  startDate        DateTime? @map("start_date")
+  endDate          DateTime? @map("end_date")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@map("popups")
+}
