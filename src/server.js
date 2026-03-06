@@ -14,51 +14,74 @@ dotenv.config();
 const prisma = new PrismaClient();
 
 // Email configuration
-const transporter = nodemailer.createTransport({
+const emailUser = process.env.EMAIL_USER?.trim();
+const emailPass = process.env.EMAIL_PASS?.trim();
+const adminEmail = process.env.ADMIN_EMAIL?.trim() || emailUser;
+const adminCcEmail = process.env.ADMIN_MAIL2?.trim() || process.env.ADMIN_EMAIL2?.trim();
+
+const transporter = emailUser && emailPass ? nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
+    user: emailUser,
+    pass: emailPass
   }
-});
+}) : null;
+
+if (!transporter) {
+  console.warn('Email notifications disabled: EMAIL_USER/EMAIL_PASS missing');
+}
+
+async function sendEmail(mailOptions, emailType) {
+  if (!transporter) {
+    console.warn(`${emailType} skipped: mail transporter is not configured`);
+    return;
+  }
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`${emailType} sent successfully`);
+  } catch (error) {
+    console.error(`Error sending ${emailType}:`, error);
+  }
+}
 
 // Send login notification email
 async function sendLoginEmail(username, ipAddress) {
-  try {
-    const timestamp = new Date().toLocaleString('en-IN', {
-      timeZone: 'Asia/Kolkata',
-      dateStyle: 'full',
-      timeStyle: 'long'
-    });
-    
-    const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
-      cc: process.env.ADMIN_MAIL2,
-      subject: 'Admin Login Alert - IEM BSH Website',
-      html: `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
-          <h2 style="color: #2563eb; margin-bottom: 20px;">Admin Login Notification</h2>
-          <p style="color: #374151; font-size: 16px; line-height: 1.6;">
-            An admin login was detected on your IEM BSH Department website.
-          </p>
-          <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
-            <p style="margin: 5px 0; color: #4b5563;"><strong>Username:</strong> ${username}</p>
-            <p style="margin: 5px 0; color: #4b5563;"><strong>Timestamp:</strong> ${timestamp}</p>
-            <p style="margin: 5px 0; color: #4b5563;"><strong>IP Address:</strong> ${ipAddress}</p>
-          </div>
-          <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
-            If this wasn't you, please change your password immediately and contact the system administrator.
-          </p>
-        </div>
-      `
-    };
-    
-    await transporter.sendMail(mailOptions);
-    console.log('Login notification email sent successfully');
-  } catch (error) {
-    console.error('Error sending login email:', error);
+  if (!adminEmail) {
+    console.warn('Login notification skipped: ADMIN_EMAIL and EMAIL_USER are both missing');
+    return;
   }
+
+  const timestamp = new Date().toLocaleString('en-IN', {
+    timeZone: 'Asia/Kolkata',
+    dateStyle: 'full',
+    timeStyle: 'long'
+  });
+
+  const mailOptions = {
+    from: emailUser,
+    to: adminEmail,
+    ...(adminCcEmail ? { cc: adminCcEmail } : {}),
+    subject: 'Admin Login Alert - IEM BSH Website',
+    html: `
+      <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
+        <h2 style="color: #2563eb; margin-bottom: 20px;">Admin Login Notification</h2>
+        <p style="color: #374151; font-size: 16px; line-height: 1.6;">
+          An admin login was detected on your IEM BSH Department website.
+        </p>
+        <div style="background-color: #f3f4f6; padding: 15px; border-radius: 6px; margin: 20px 0;">
+          <p style="margin: 5px 0; color: #4b5563;"><strong>Username:</strong> ${username}</p>
+          <p style="margin: 5px 0; color: #4b5563;"><strong>Timestamp:</strong> ${timestamp}</p>
+          <p style="margin: 5px 0; color: #4b5563;"><strong>IP Address:</strong> ${ipAddress}</p>
+        </div>
+        <p style="color: #6b7280; font-size: 14px; margin-top: 20px;">
+          If this wasn't you, please change your password immediately and contact the system administrator.
+        </p>
+      </div>
+    `
+  };
+
+  await sendEmail(mailOptions, 'Login notification email');
 }
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -675,9 +698,15 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
     });
 
     // Send email notification
+    if (!adminEmail) {
+      console.warn('Password change email skipped: ADMIN_EMAIL and EMAIL_USER are both missing');
+      return res.json({ message: 'Password changed successfully' });
+    }
+
     const mailOptions = {
-      from: process.env.EMAIL_USER,
-      to: process.env.ADMIN_EMAIL || process.env.EMAIL_USER,
+      from: emailUser,
+      to: adminEmail,
+      ...(adminCcEmail ? { cc: adminCcEmail } : {}),
       subject: 'Password Changed - IEM BSH Website',
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e0e0e0; border-radius: 8px;">
@@ -695,8 +724,8 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
         </div>
       `
     };
-    
-    await transporter.sendMail(mailOptions);
+
+    await sendEmail(mailOptions, 'Password change email');
 
     res.json({ message: 'Password changed successfully' });
   } catch (error) {
