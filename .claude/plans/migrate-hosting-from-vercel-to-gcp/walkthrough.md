@@ -33,7 +33,7 @@ All files committed in `feat: migrate hosting from vercel to gcp compute engine 
 |---|---|
 | `ecosystem.config.cjs` | PM2 process config (`.cjs` extension required — `package.json` has `"type":"module"`) |
 | `deploy/Caddyfile` | Caddy reverse proxy: `bshs-api.iem.edu.in` → `localhost:6500`, gzip, 20 MB body limit, JSON access logs |
-| `deploy/setup-vm.sh` | One-shot Ubuntu 22.04 bootstrap: Node 20 (NodeSource apt repo), PostgreSQL 16, Caddy, PM2, `deploy` OS user, `iem_bsh` DB, UFW rules |
+| `deploy/setup-vm.sh` | One-shot Ubuntu 24.04 bootstrap: Node 20 (NodeSource apt repo), PostgreSQL 16, Caddy, PM2, `deploy` OS user, `iem_bsh` DB, UFW rules |
 | `deploy/deploy.sh` | Per-deploy script: `git pull` → `npm ci` → `prisma migrate deploy` → `pm2 reload` |
 | `deploy/backup.sh` | Nightly `pg_dump` → gzip, 14-day retention; GCS upload block is commented out |
 | `.github/workflows/deploy.yml` | GitHub Actions: SSH into VM on push to `main`, run `deploy.sh` |
@@ -74,8 +74,8 @@ The repo is fully ready. The remaining work is ops:
 
 ### 1. Provision the VM
 - GCP Console → Compute Engine → Create instance
-- Machine type: `e2-small` (can scale to `e2-medium` if needed)
-- OS: Ubuntu 22.04 LTS
+- Machine type: `g1-small` (can scale to `g1-medium` if needed)
+- OS: Ubuntu 24.04 LTS
 - Reserve a **static external IP**
 - Firewall: allow HTTP (80) and HTTPS (443)
 
@@ -150,5 +150,5 @@ sudo crontab -e
 |---|---|
 | Switch to Prisma migrations | Run `npx prisma migrate dev --name init` locally to snapshot the current schema into `prisma/migrations/`. Then `prisma migrate deploy` on the VM. Gives a reversible change history. Currently `deploy.sh` falls back to `db push` if no `migrations/` dir exists. |
 | GCS backups | Uncomment the `gsutil cp` block in `deploy/backup.sh` after provisioning a GCS bucket and service account on GCP. |
-| Upgrade VM | e2-small (2 vCPU/2 GB RAM) is sufficient for low traffic. Resize to e2-medium if response times degrade under load — no code changes needed. |
+| Upgrade VM | g1-small (1 vCPU/1.7 GB RAM) is sufficient for low traffic. Resize to g1-medium if response times degrade under load — no code changes needed. |
 | Frontend upload URL | If the frontend hardcodes `puppeteer_assets/` in image URLs, update those references to `/uploads/`. |

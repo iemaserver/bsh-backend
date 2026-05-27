@@ -12,7 +12,7 @@ The repo is currently structured for **Vercel serverless** deploys with **Supaba
 Previous session already removed Supabase framing and switched local dev to Homebrew Postgres. The Vercel layer is the remaining piece.
 
 **Chosen stack (per user input):**
-- GCP Compute Engine VM, Ubuntu 22.04 LTS (e2-small recommended; scale to e2-medium if needed)
+- GCP Compute Engine VM, Ubuntu 24.04 LTS (g1-small recommended; scale to g1-medium if needed)
 - PostgreSQL 16 on the **same VM**
 - **Caddy** as reverse proxy with automatic Let's Encrypt HTTPS
 - **PM2** process manager
@@ -28,7 +28,7 @@ Internet
    │ HTTPS (443)
    ▼
 ┌────────────────────────────────────────────────┐
-│   GCP Compute Engine VM (Ubuntu 22.04)         │
+│   GCP Compute Engine VM (Ubuntu 24.04)         │
 │                                                │
 │   Caddy (:443, :80)  ── auto Let's Encrypt     │
 │      │                                         │
@@ -159,7 +159,7 @@ Also update the **Service Dependencies** table: drop Vercel, add "GCP Compute En
 2. POST a file to `/api/admin/upload` → file appears in `./uploads/`
 
 **On the VM (first-time):**
-1. Provision e2-small VM, reserve static external IP, request DNS A record for `bshs-api.iem.edu.in` → VM static IP (via the `iem.edu.in` zone admin)
+1. Provision g1-small VM, reserve static external IP, request DNS A record for `bshs-api.iem.edu.in` → VM static IP (via the `iem.edu.in` zone admin)
 2. SSH in, clone repo, `bash deploy/setup-vm.sh`
 3. Copy production `.env` into the project dir, `npx prisma migrate deploy`, `pm2 start ecosystem.config.js`, `pm2 save`
 4. `systemctl reload caddy`

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # One-shot VM bootstrap for the IEM BSH backend.
-# Idempotent: safe to re-run. Designed for Ubuntu 22.04 LTS.
+# Idempotent: safe to re-run. Designed for Ubuntu 24.04 LTS.
 #
 # Usage:
 #   sudo bash deploy/setup-vm.sh

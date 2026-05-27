@@ -102,14 +102,14 @@ Internet ──HTTPS──▶ Caddy (:443) ──reverse_proxy──▶ Node/Exp
                                                           └─▶ /var/www/iem-bsh/uploads/
 ```
 
-A single GCP Compute Engine VM (Ubuntu 22.04 LTS, e2-small) runs:
+A single GCP Compute Engine VM (Ubuntu 24.04 LTS, g1-small) runs:
 - **Caddy** — TLS termination and HTTP→HTTPS redirect for `bshs-api.iem.edu.in` (auto-Let's Encrypt)
 - **PM2** — keeps the Node process alive, handles log rotation, auto-restart on crash
 - **PostgreSQL 16** — co-located with the app (no network hop)
 
 ### First-time VM setup
 
-1. **Provision the VM** in GCP Console: Ubuntu 22.04 LTS, e2-small, reserve a static external IP, allow HTTP + HTTPS traffic.
+1. **Provision the VM** in GCP Console: Ubuntu 24.04 LTS, g1-small, reserve a static external IP, allow HTTP + HTTPS traffic.
 2. **Coordinate DNS**: ask the `iem.edu.in` zone admin to add an A record:
    ```
    bshs-api.iem.edu.in.   A   <VM_STATIC_IP>
