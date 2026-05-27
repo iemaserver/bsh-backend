@@ -15,7 +15,7 @@ APP_DIR="${APP_DIR:-/var/www/iem-bsh}"
 LOG_DIR="${LOG_DIR:-/var/log/iem-bsh}"
 DB_NAME="${DB_NAME:-iem_bsh}"
 DB_USER="${DB_USER:-iem_bsh}"
-NODE_MAJOR="${NODE_MAJOR:-20}"
+NODE_MAJOR="${NODE_MAJOR:-24}"
 
 if [[ $EUID -ne 0 ]]; then
   echo "This script must be run as root (use sudo)." >&2
