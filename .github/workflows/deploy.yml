@@ -18,7 +18,7 @@ jobs:
       # Only repo secrets (host/user/key) are used; nothing from github.event.*
       # is interpolated into shell commands, so no injection surface here.
       - name: SSH and run deploy script
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
         with:
           host:     ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
