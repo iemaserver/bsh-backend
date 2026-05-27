@@ -12,7 +12,7 @@ The repo is currently structured for **Vercel serverless** deploys with **Supaba
 Previous session already removed Supabase framing and switched local dev to Homebrew Postgres. The Vercel layer is the remaining piece.
 
 **Chosen stack (per user input):**
-- GCP Compute Engine VM, Ubuntu 24.04 LTS (g1-small recommended; scale to g1-medium if needed)
+- GCP Compute Engine VM, Ubuntu 24.04 LTS (g1-small recommended; scale to e2-small if needed)
 - PostgreSQL 16 on the **same VM**
 - **Caddy** as reverse proxy with automatic Let's Encrypt HTTPS
 - **PM2** process manager

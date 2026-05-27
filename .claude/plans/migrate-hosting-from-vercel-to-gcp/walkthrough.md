@@ -74,7 +74,7 @@ The repo is fully ready. The remaining work is ops:
 
 ### 1. Provision the VM
 - GCP Console → Compute Engine → Create instance
-- Machine type: `g1-small` (can scale to `g1-medium` if needed)
+- Machine type: `g1-small` (can scale to `e2-small` if needed)
 - OS: Ubuntu 24.04 LTS
 - Reserve a **static external IP**
 - Firewall: allow HTTP (80) and HTTPS (443)
@@ -150,5 +150,5 @@ sudo crontab -e
 |---|---|
 | Switch to Prisma migrations | Run `npx prisma migrate dev --name init` locally to snapshot the current schema into `prisma/migrations/`. Then `prisma migrate deploy` on the VM. Gives a reversible change history. Currently `deploy.sh` falls back to `db push` if no `migrations/` dir exists. |
 | GCS backups | Uncomment the `gsutil cp` block in `deploy/backup.sh` after provisioning a GCS bucket and service account on GCP. |
-| Upgrade VM | g1-small (1 vCPU/1.7 GB RAM) is sufficient for low traffic. Resize to g1-medium if response times degrade under load — no code changes needed. |
+| Upgrade VM | g1-small (1 vCPU/1.7 GB RAM) is sufficient for low traffic. Resize to e2-small if response times degrade under load — no code changes needed. |
 | Frontend upload URL | If the frontend hardcodes `puppeteer_assets/` in image URLs, update those references to `/uploads/`. |
