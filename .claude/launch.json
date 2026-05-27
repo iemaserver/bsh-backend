@@ -5,14 +5,14 @@
       "name": "Dev Server (nodemon)",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
-      "port": 5000,
+      "port": 6000,
       "autoPort": true
     },
     {
       "name": "Production Server",
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "start"],
-      "port": 5000,
+      "port": 6000,
       "autoPort": true
     },
     {
