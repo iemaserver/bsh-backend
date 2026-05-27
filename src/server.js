@@ -84,7 +84,7 @@ async function sendLoginEmail(username, ipAddress) {
   await sendEmail(mailOptions, 'Login notification email');
 }
 const app = express();
-const PORT = process.env.PORT || 6000;
+const PORT = process.env.PORT || 6500;
 
 // Middleware
 app.use(cors({

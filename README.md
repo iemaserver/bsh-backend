@@ -34,7 +34,7 @@ Create a `.env` file in the project root with the following:
 
 ```env
 # Server
-PORT=6000
+PORT=6500
 
 # JWT
 JWT_SECRET=your_jwt_secret_key
@@ -83,7 +83,7 @@ npm run seed
 npm run dev
 ```
 
-The API will be available at `http://localhost:6000`.
+The API will be available at `http://localhost:6500`.
 
 ## Build & Deployment (Vercel)
 
