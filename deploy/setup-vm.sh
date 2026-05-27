@@ -93,6 +93,62 @@ sudo -u postgres psql -tc "SELECT 1 FROM pg_database WHERE datname = '${DB_NAME}
   sudo -u postgres createdb -O "${DB_USER}" "${DB_NAME}"
 }
 
+echo "==> Configuring swap (2 GB)"
+if [ ! -f /swapfile ]; then
+  fallocate -l 2G /swapfile
+  chmod 600 /swapfile
+  mkswap /swapfile
+  swapon /swapfile
+  echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  echo "    -> Swapfile created and added to /etc/fstab"
+else
+  echo "    -> Swapfile already exists, skipping"
+fi
+# Tune kernel swap behaviour: only use swap when RAM is nearly exhausted
+grep -q 'vm.swappiness' /etc/sysctl.conf \
+  && sed -i 's/^vm.swappiness=.*/vm.swappiness=10/' /etc/sysctl.conf \
+  || echo 'vm.swappiness=10' >> /etc/sysctl.conf
+grep -q 'vm.vfs_cache_pressure' /etc/sysctl.conf \
+  && sed -i 's/^vm.vfs_cache_pressure=.*/vm.vfs_cache_pressure=50/' /etc/sysctl.conf \
+  || echo 'vm.vfs_cache_pressure=50' >> /etc/sysctl.conf
+sysctl -w vm.swappiness=10 >/dev/null
+sysctl -w vm.vfs_cache_pressure=50 >/dev/null
+
+echo "==> Configuring unattended security upgrades"
+apt-get install -y unattended-upgrades apt-listchanges
+cat > /etc/apt/apt.conf.d/50unattended-upgrades << 'UUEOF'
+Unattended-Upgrade::Allowed-Origins {
+    "${distro_id}:${distro_codename}";
+    "${distro_id}:${distro_codename}-security";
+    "${distro_id}ESMApps:${distro_codename}-apps-security";
+    "${distro_id}ESM:${distro_codename}-infra-security";
+};
+
+// Auto-reboot for kernel updates — only when no users are logged in
+Unattended-Upgrade::Automatic-Reboot "true";
+Unattended-Upgrade::Automatic-Reboot-WithUsers "false";
+Unattended-Upgrade::Automatic-Reboot-Time "03:30";
+
+// Clean up after upgrades
+Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+Unattended-Upgrade::Remove-New-Unused-Dependencies "true";
+Unattended-Upgrade::Remove-Unused-Dependencies "true";
+
+// Uncomment and fill in once EMAIL_USER is configured in .env:
+// Unattended-Upgrade::Mail "admin@example.com";
+// Unattended-Upgrade::MailReport "on-change";
+
+Unattended-Upgrade::SyslogEnable "true";
+Unattended-Upgrade::SyslogFacility "daemon";
+UUEOF
+cat > /etc/apt/apt.conf.d/20auto-upgrades << 'AUEOF'
+APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Download-Upgradeable-Packages "1";
+APT::Periodic::AutocleanInterval "7";
+APT::Periodic::Unattended-Upgrade "1";
+AUEOF
+systemctl enable --now apt-daily.timer apt-daily-upgrade.timer
+
 echo "==> Configuring UFW firewall (22, 80, 443)"
 ufw allow OpenSSH
 ufw allow 80/tcp
