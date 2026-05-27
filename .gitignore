@@ -1,4 +1,8 @@
-.vercel/
 /node_modules
 .env
-.vercel
+
+# Local file uploads (multer disk storage)
+/uploads/
+
+# Ignore vscode AI rules
+.github/instructions/codacy.instructions.md

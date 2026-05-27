@@ -1,0 +1,29 @@
+name: Deploy to GCP VM
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # No checkout needed — the VM pulls from git itself in deploy.sh.
+      # Only repo secrets (host/user/key) are used; nothing from github.event.*
+      # is interpolated into shell commands, so no injection surface here.
+      - name: SSH and run deploy script
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key:      ${{ secrets.VM_SSH_KEY }}
+          port:     ${{ secrets.VM_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            bash /var/www/iem-bsh/deploy/deploy.sh

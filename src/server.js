@@ -742,13 +742,17 @@ app.post('/api/auth/change-password', authenticateToken, async (req, res) => {
 // FILE UPLOAD
 // ========================
 
+const uploadDir = process.env.UPLOAD_DIR
+  ? path.resolve(process.env.UPLOAD_DIR)
+  : path.join(process.cwd(), 'uploads');
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    const uploadPath = path.join(process.cwd(), '../puppeteer_assets');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
+    cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
@@ -759,11 +763,13 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
+app.use('/uploads', express.static(uploadDir));
+
 app.post('/api/admin/upload', authenticateToken, upload.single('image'), (req, res) => {
   if (!req.file) {
     return res.status(400).json({ error: 'No file uploaded' });
   }
-  res.json({ url: `puppeteer_assets/${req.file.filename}` });
+  res.json({ url: `/uploads/${req.file.filename}` });
 });
 
 // Helper function to create CRUD routes
@@ -982,11 +988,9 @@ app.get('/api/admin/dashboard/stats', authenticateToken, async (req, res) => {
 // START SERVER
 // ========================
 
-if (process.env.VERCEL !== '1') {
-  app.listen(PORT, () => {
-    console.log(`🚀 IEM BSH API Server running on port ${PORT}`);
-  });
-}
+app.listen(PORT, () => {
+  console.log(`🚀 IEM BSH API Server running on port ${PORT}`);
+});
 
 export default app;
 

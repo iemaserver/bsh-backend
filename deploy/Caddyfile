@@ -1,0 +1,18 @@
+bshs-api.iem.edu.in {
+    reverse_proxy localhost:6500
+
+    encode gzip
+
+    # Reasonable upload size for the /api/admin/upload endpoint
+    request_body {
+        max_size 20MB
+    }
+
+    log {
+        output file /var/log/caddy/bshs-api.log {
+            roll_size 50MB
+            roll_keep 7
+        }
+        format json
+    }
+}
