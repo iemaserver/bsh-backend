@@ -1,13 +1,13 @@
 # IEM BSH Backend API
 
-Node.js/Express REST API for the IEM BSH Department website, deployed on Vercel with a PostgreSQL database via Supabase and Prisma ORM.
+Node.js/Express REST API for the IEM BSH Department website, deployed on Vercel with a PostgreSQL database and Prisma ORM.
 
 ## Tech Stack
 
 - **Runtime**: Node.js (ESM)
 - **Framework**: Express.js
 - **ORM**: Prisma
-- **Database**: PostgreSQL (Supabase)
+- **Database**: PostgreSQL
 - **Auth**: JWT (jsonwebtoken) + bcryptjs
 - **Email**: Nodemailer (Gmail SMTP)
 - **File Upload**: Multer
@@ -16,7 +16,7 @@ Node.js/Express REST API for the IEM BSH Department website, deployed on Vercel 
 ## Project Structure
 
 ```
-backend-node/
+.
 ├── api/
 │   └── index.js          # Vercel serverless entry point
 ├── prisma/
@@ -30,7 +30,7 @@ backend-node/
 
 ## Environment Variables
 
-Create a `.env` file in the `backend-node/` directory with the following:
+Create a `.env` file in the project root with the following:
 
 ```env
 # Server
@@ -48,13 +48,17 @@ ADMIN_PASSWORD=your_secure_password
 # CORS — comma-separated origins, or * to allow all
 CORS_ORIGINS=https://your-frontend.vercel.app
 
-# Database (Supabase PostgreSQL)
-# Use the pooled connection URL for runtime queries (pgbouncer)
-DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true"
-# Use the direct connection URL for Prisma migrations/schema push
-DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/postgres"
+# Database (local PostgreSQL)
+# For local dev, both URLs are identical — no pgbouncer needed
+DATABASE_URL="postgresql://USER@localhost:5432/iem_bsh"
+DIRECT_URL="postgresql://USER@localhost:5432/iem_bsh"
+
+# For production (Supabase or other managed Postgres), use:
+# DATABASE_URL="postgresql://USER:PASSWORD@HOST:6543/postgres?pgbouncer=true"
+# DIRECT_URL="postgresql://USER:PASSWORD@HOST:5432/postgres"
 
 # Email (Gmail SMTP — use an App Password, not your account password)
+# Leave blank to disable email notifications
 EMAIL_USER=your_gmail@gmail.com
 EMAIL_PASS=your_gmail_app_password
 ADMIN_EMAIL=primary_admin@example.com
@@ -90,7 +94,7 @@ This project is configured for Vercel serverless deployment. All requests are re
 vercel --prod
 ```
 
-Or connect the `backend-node/` directory to a Vercel project and set the environment variables in the Vercel dashboard. No build command is required — Vercel runs `npm install` which triggers `prisma generate` via the `postinstall` script.
+Or connect the project root to a Vercel project and set the environment variables in the Vercel dashboard. No build command is required — Vercel runs `npm install` which triggers `prisma generate` via the `postinstall` script.
 
 ### Required Vercel Environment Variables
 
@@ -98,9 +102,10 @@ Set all variables from the `.env` section above in your Vercel project settings.
 
 ## Database
 
-- Provider: **PostgreSQL** via [Supabase](https://supabase.com)
+- Provider: **PostgreSQL** (local via Homebrew/Docker, or managed via Supabase/Neon in production)
 - ORM: **Prisma**
-- Use `DATABASE_URL` (pooled, port 6543) for runtime and `DIRECT_URL` (direct, port 5432) for migrations
+- For local dev: `DATABASE_URL` and `DIRECT_URL` point to the same local connection
+- For production (Supabase): `DATABASE_URL` uses the pooled pgbouncer URL (port 6543), `DIRECT_URL` uses the direct connection (port 5432)
 
 ```bash
 # Apply schema changes
@@ -125,6 +130,6 @@ npm run db:studio
 
 | Service | Purpose |
 |---|---|
-| Supabase PostgreSQL | Primary database |
-| Gmail SMTP | Login alerts and password change notifications |
+| PostgreSQL | Primary database (local or managed) |
+| Gmail SMTP | Login alerts and password change notifications (optional) |
 | Vercel | Hosting / serverless deployment |
