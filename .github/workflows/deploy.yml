@@ -14,9 +14,29 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      # Writes all env vars from GitHub Secrets to /var/www/iem-bsh/.env on the VM.
+      # Secrets are passed as remote environment variables via `envs:` — they are
+      # never interpolated into the YAML script text, so they stay out of logs.
+      - name: Write .env file on VM
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host:     ${{ secrets.VM_HOST }}
+          username: ${{ secrets.VM_USER }}
+          key:      ${{ secrets.VM_SSH_KEY }}
+          port:     ${{ secrets.VM_SSH_PORT || 22 }}
+          script_stop: true
+          envs: PORT,NODE_ENV,UPLOAD_DIR,JWT_SECRET,JWT_ALGORITHM,ACCESS_TOKEN_EXPIRE_MINUTES,ADMIN_USERNAME,ADMIN_PASSWORD,CORS_ORIGINS,DATABASE_URL,DIRECT_URL,EMAIL_USER,EMAIL_PASS,ADMIN_EMAIL,ADMIN_EMAIL2
+          script: |
+            printf 'PORT=%s\nNODE_ENV=%s\nUPLOAD_DIR=%s\nJWT_SECRET=%s\nJWT_ALGORITHM=%s\nACCESS_TOKEN_EXPIRE_MINUTES=%s\nADMIN_USERNAME=%s\nADMIN_PASSWORD=%s\nCORS_ORIGINS=%s\nDATABASE_URL=%s\nDIRECT_URL=%s\nEMAIL_USER=%s\nEMAIL_PASS=%s\nADMIN_EMAIL=%s\nADMIN_EMAIL2=%s\n' \
+              "$PORT" "$NODE_ENV" "$UPLOAD_DIR" \
+              "$JWT_SECRET" "$JWT_ALGORITHM" "$ACCESS_TOKEN_EXPIRE_MINUTES" \
+              "$ADMIN_USERNAME" "$ADMIN_PASSWORD" "$CORS_ORIGINS" \
+              "$DATABASE_URL" "$DIRECT_URL" \
+              "$EMAIL_USER" "$EMAIL_PASS" "$ADMIN_EMAIL" "$ADMIN_EMAIL2" \
+              > /var/www/iem-bsh/.env
+            chmod 600 /var/www/iem-bsh/.env
+
       # No checkout needed — the VM pulls from git itself in deploy.sh.
-      # Only repo secrets (host/user/key) are used; nothing from github.event.*
-      # is interpolated into shell commands, so no injection surface here.
       - name: SSH and run deploy script
         uses: appleboy/ssh-action@v1.2.5
         with:
