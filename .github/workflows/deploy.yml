@@ -14,17 +14,32 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # Writes all env vars from GitHub Secrets to /var/www/iem-bsh/.env on the VM.
-      # Secrets are passed as remote environment variables via `envs:` — they are
-      # never interpolated into the YAML script text, so they stay out of logs.
+      # `env:` maps each secret into the runner environment so appleboy's
+      # `envs:` can forward them over SSH to the remote shell.
+      # Secrets are never interpolated into YAML script text — they stay masked.
       - name: Write .env file on VM
-        uses: appleboy/ssh-action@v1.2.0
+        uses: appleboy/ssh-action@v1.2.5
+        env:
+          PORT:                       ${{ secrets.PORT }}
+          NODE_ENV:                   ${{ secrets.NODE_ENV }}
+          UPLOAD_DIR:                 ${{ secrets.UPLOAD_DIR }}
+          JWT_SECRET:                 ${{ secrets.JWT_SECRET }}
+          JWT_ALGORITHM:              ${{ secrets.JWT_ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES: ${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          ADMIN_USERNAME:             ${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD:             ${{ secrets.ADMIN_PASSWORD }}
+          CORS_ORIGINS:               ${{ secrets.CORS_ORIGINS }}
+          DATABASE_URL:               ${{ secrets.DATABASE_URL }}
+          DIRECT_URL:                 ${{ secrets.DIRECT_URL }}
+          EMAIL_USER:                 ${{ secrets.EMAIL_USER }}
+          EMAIL_PASS:                 ${{ secrets.EMAIL_PASS }}
+          ADMIN_EMAIL:                ${{ secrets.ADMIN_EMAIL }}
+          ADMIN_EMAIL2:               ${{ secrets.ADMIN_EMAIL2 }}
         with:
           host:     ${{ secrets.VM_HOST }}
           username: ${{ secrets.VM_USER }}
           key:      ${{ secrets.VM_SSH_KEY }}
           port:     ${{ secrets.VM_SSH_PORT || 22 }}
-          script_stop: true
           envs: PORT,NODE_ENV,UPLOAD_DIR,JWT_SECRET,JWT_ALGORITHM,ACCESS_TOKEN_EXPIRE_MINUTES,ADMIN_USERNAME,ADMIN_PASSWORD,CORS_ORIGINS,DATABASE_URL,DIRECT_URL,EMAIL_USER,EMAIL_PASS,ADMIN_EMAIL,ADMIN_EMAIL2
           script: |
             printf 'PORT=%s\nNODE_ENV=%s\nUPLOAD_DIR=%s\nJWT_SECRET=%s\nJWT_ALGORITHM=%s\nACCESS_TOKEN_EXPIRE_MINUTES=%s\nADMIN_USERNAME=%s\nADMIN_PASSWORD=%s\nCORS_ORIGINS=%s\nDATABASE_URL=%s\nDIRECT_URL=%s\nEMAIL_USER=%s\nEMAIL_PASS=%s\nADMIN_EMAIL=%s\nADMIN_EMAIL2=%s\n' \
@@ -44,6 +59,5 @@ jobs:
           username: ${{ secrets.VM_USER }}
           key:      ${{ secrets.VM_SSH_KEY }}
           port:     ${{ secrets.VM_SSH_PORT || 22 }}
-          script_stop: true
           script: |
             bash /var/www/iem-bsh/deploy/deploy.sh
