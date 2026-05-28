@@ -14,44 +14,46 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      # GitHub Actions evaluates ${{ secrets.* }} expressions before the script
-      # is sent over SSH. Values are masked (***) in the Actions log. The single-
-      # quoted heredoc ('EOF') prevents any shell expansion on the remote side,
-      # so special characters in values are written verbatim.
-      - name: Write .env file on VM
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host:     ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key:      ${{ secrets.VM_SSH_KEY }}
-          port:     ${{ secrets.VM_SSH_PORT || 22 }}
-          script: |
-            cat > /var/www/iem-bsh/.env << 'EOF'
-            PORT=${{ secrets.PORT }}
-            NODE_ENV=${{ secrets.NODE_ENV }}
-            UPLOAD_DIR=${{ secrets.UPLOAD_DIR }}
-            JWT_SECRET=${{ secrets.JWT_SECRET }}
-            JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }}
-            ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
-            ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}
-            ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
-            CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
-            DATABASE_URL=${{ secrets.DATABASE_URL }}
-            DIRECT_URL=${{ secrets.DIRECT_URL }}
-            EMAIL_USER=${{ secrets.EMAIL_USER }}
-            EMAIL_PASS=${{ secrets.EMAIL_PASS }}
-            ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
-            ADMIN_EMAIL2=${{ secrets.ADMIN_EMAIL2 }}
-            EOF
-            chmod 600 /var/www/iem-bsh/.env
+      # Build .env on the runner. GitHub substitutes ${{ secrets.* }} before
+      # the shell runs, so the file gets real values. Single-quoted ENVEOF
+      # prevents any further shell expansion inside the heredoc body.
+      - name: Build .env and deploy to VM
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.VM_SSH_KEY }}
+          VM_HOST:         ${{ secrets.VM_HOST }}
+          VM_USER:         ${{ secrets.VM_USER }}
+          VM_PORT:         ${{ secrets.VM_SSH_PORT }}
+        run: |
+          # Prepare SSH key
+          mkdir -p ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
+          ssh-keyscan -p "${VM_PORT:-22}" "$VM_HOST" >> ~/.ssh/known_hosts 2>/dev/null
 
-      # No checkout needed — the VM pulls from git itself in deploy.sh.
-      - name: SSH and run deploy script
-        uses: appleboy/ssh-action@v1.2.5
-        with:
-          host:     ${{ secrets.VM_HOST }}
-          username: ${{ secrets.VM_USER }}
-          key:      ${{ secrets.VM_SSH_KEY }}
-          port:     ${{ secrets.VM_SSH_PORT || 22 }}
-          script: |
-            bash /var/www/iem-bsh/deploy/deploy.sh
+          # Build .env with real secret values on the runner
+          cat > /tmp/vm.env << 'ENVEOF'
+          PORT=${{ secrets.PORT }}
+          NODE_ENV=${{ secrets.NODE_ENV }}
+          UPLOAD_DIR=${{ secrets.UPLOAD_DIR }}
+          JWT_SECRET=${{ secrets.JWT_SECRET }}
+          JWT_ALGORITHM=${{ secrets.JWT_ALGORITHM }}
+          ACCESS_TOKEN_EXPIRE_MINUTES=${{ secrets.ACCESS_TOKEN_EXPIRE_MINUTES }}
+          ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}
+          ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          CORS_ORIGINS=${{ secrets.CORS_ORIGINS }}
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DIRECT_URL=${{ secrets.DIRECT_URL }}
+          EMAIL_USER=${{ secrets.EMAIL_USER }}
+          EMAIL_PASS=${{ secrets.EMAIL_PASS }}
+          ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}
+          ADMIN_EMAIL2=${{ secrets.ADMIN_EMAIL2 }}
+          ENVEOF
+
+          SSH="ssh -i ~/.ssh/id_deploy -p ${VM_PORT:-22} $VM_USER@$VM_HOST"
+          SCP="scp -i ~/.ssh/id_deploy -P ${VM_PORT:-22}"
+
+          # Copy .env then run deploy (deploy.sh does git reset --hard so we
+          # copy AFTER that to prevent git overwriting it)
+          $SSH "cd /var/www/iem-bsh && git fetch --prune origin && git reset --hard origin/main"
+          $SCP /tmp/vm.env "$VM_USER@$VM_HOST:/var/www/iem-bsh/.env"
+          $SSH "chmod 600 /var/www/iem-bsh/.env && SKIP_GIT=1 bash /var/www/iem-bsh/deploy/deploy.sh"

@@ -6,12 +6,15 @@ set -euo pipefail
 
 APP_DIR="${APP_DIR:-/var/www/iem-bsh}"
 BRANCH="${BRANCH:-main}"
+SKIP_GIT="${SKIP_GIT:-0}"
 
 cd "${APP_DIR}"
 
-echo "==> Fetching latest code"
-git fetch --prune origin
-git reset --hard "origin/${BRANCH}"
+if [[ "$SKIP_GIT" != "1" ]]; then
+  echo "==> Fetching latest code"
+  git fetch --prune origin
+  git reset --hard "origin/${BRANCH}"
+fi
 
 echo "==> Installing production dependencies"
 npm ci --omit=dev
