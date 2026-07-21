@@ -8,6 +8,7 @@
         "dev": "nodemon src/server.js",
         "start": "node src/server.js",
         "seed": "node prisma/seed.js",
+        "reset-admin": "node scripts/reset-admin.js",
         "db:push": "npx prisma db push",
         "db:generate": "npx prisma generate",
         "db:studio": "npx prisma studio",
